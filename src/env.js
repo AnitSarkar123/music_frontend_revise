@@ -37,6 +37,11 @@ export const env = createEnv({
     // Optional external tokens
     POLAR_ACCESS_TOKEN: z.string().optional(),
     POLAR_WEBHOOK_SECRET: z.string().optional(),
+
+    // Optional email provider (Resend) for auth emails
+    RESEND_API_KEY: z.string().optional(),
+    EMAIL_FROM: z.string().email().optional(),
+
   },
 
   /**
@@ -74,6 +79,10 @@ export const env = createEnv({
 
     POLAR_ACCESS_TOKEN: process.env.POLAR_ACCESS_TOKEN,
     POLAR_WEBHOOK_SECRET: process.env.POLAR_WEBHOOK_SECRET,
+
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
+    EMAIL_FROM: process.env.EMAIL_FROM,
+
   },
 
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,

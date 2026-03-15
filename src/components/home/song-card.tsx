@@ -96,7 +96,7 @@ export function SongCard({ song }: { song: SongWithRelation }) {
         <p className="text-xs text-gray-500">{song.user.name}</p>
 
         <div className="mt-1 flex items-center justify-between text-xs text-gray-900">
-          <span>{song.listenCount} listens</span>
+          <span>{song.listenCount} times listens</span>
           <button
             onClick={handleLike}
             className="flex cursor-pointer items-center gap-1"

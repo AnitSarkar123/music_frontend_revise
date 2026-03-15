@@ -52,7 +52,7 @@ export async function generateSong(generateRequest: GenerateRequest) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) redirect("/auth/sign-in");
 
-  await queueSong(generateRequest, 7.5, session.user.id);
+  await queueSong(generateRequest, 7.5, session.user.id);// here 7.5 is the guidance scale, you can adjust it as needed or make it dynamic based on user input or other factors. it is here used for testing to generate faster results, you can increase it to 15 for better quality but longer generation time.
   // await queueSong(generateRequest, 15, session.user.id);
 
   revalidatePath("/create");
@@ -88,7 +88,7 @@ export async function queueSong(
       describedLyrics: generateRequest.describedLyrics,
       fullDescribedSong: generateRequest.fullDescribedSong,
       instrumental: generateRequest.instrumental ?? false,
-      guidanceScale,
+      guidanceScale, 
       audioDuration: 120,
       status: "processing", // Change from queued to processing
     },

@@ -3,5 +3,6 @@
     "WillLuke.nextjs.hasPrompted": true,
     "cSpell.words": [
         "daveyplate"
-    ]
+    ],
+    "prisma.pinToPrisma6": true
 }

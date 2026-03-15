@@ -27,3 +27,22 @@ You can check out the [create-t3-app GitHub repository](https://github.com/t3-os
 ## How do I deploy this?
 
 Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+
+## Email verification and forgot password
+
+Email verification on sign up and forgot-password reset email are enabled through Better Auth.
+
+Set these environment variables (local and Vercel):
+
+```bash
+RESEND_API_KEY=""
+EMAIL_FROM="noreply@yourdomain.com"
+```
+
+Notes:
+
+- `EMAIL_FROM` must be a verified sender/domain in Resend.
+- In development, if these env vars are missing, links are logged in server console.
+- In signup UI, users choose verification method: URL link or 6-digit OTP.
+- If user chooses OTP, only OTP is sent and user is redirected to `/email-verify-otp`.
+- If user chooses link, only verification URL is sent.
