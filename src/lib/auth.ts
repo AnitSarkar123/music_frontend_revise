@@ -14,11 +14,14 @@ export const auth = betterAuth({
         sendOnSignUp: false,
         sendOnSignIn: false,
         expiresIn: 120,
-        sendVerificationEmail: async ({ user, url }, request) => {
-            const requestedMode = request?.headers.get("x-verification-mode");
-            const hasLinkMarker = url.includes("verify-method=link");
+        sendVerificationEmail: async ({ user, url }) => {
+            const decodedUrl = decodeURIComponent(url);
+            const hasLinkMarker =
+                decodedUrl.includes("verify-method=link") ||
+                url.includes("verify-method=link") ||
+                url.includes("verify-method%3Dlink");
 
-            if (requestedMode !== "link" && !hasLinkMarker) {
+            if (!hasLinkMarker) {
                 return;
             }
 

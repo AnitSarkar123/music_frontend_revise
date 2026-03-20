@@ -26,6 +26,40 @@ export function SignupWithMethodForm() {
   const [method, setMethod] = useState<VerificationMethod>("link");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const sendVerificationForMethod = async (targetEmail: string, selectedMethod: VerificationMethod) => {
+    const verificationResponse = await fetch("/api/email-verification/send", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: targetEmail,
+        method: selectedMethod,
+      }),
+    });
+
+    const verificationData = (await verificationResponse.json().catch(() => ({}))) as {
+      message?: string;
+      error?: string;
+    };
+
+    if (!verificationResponse.ok) {
+      toast.error(verificationData.error ?? "Failed to send verification email.");
+      return false;
+    }
+
+    if (selectedMethod === "otp") {
+      toast.success("OTP sent to your email.");
+      router.push(`/email-verify-otp?email=${encodeURIComponent(targetEmail)}`);
+    } else {
+      toast.success("Verification link sent to your email.");
+      router.push("/auth/sign-in");
+    }
+
+    router.refresh();
+    return true;
+  };
+
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -37,6 +71,11 @@ export function SignupWithMethodForm() {
     setIsSubmitting(true);
 
     try {
+      const callbackURL =
+        method === "link"
+          ? "/auth/sign-in?verify-method=link"
+          : "/auth/sign-in?verify-method=otp";
+
       const signUpResponse = await fetch("/api/auth/sign-up/email", {
         method: "POST",
         headers: {
@@ -46,52 +85,40 @@ export function SignupWithMethodForm() {
           name,
           email,
           password,
-          callbackURL: "/auth/sign-in",
+          callbackURL,
         }),
       });
 
       const signUpData = (await signUpResponse.json().catch(() => ({}))) as {
         message?: string;
         error?: { message?: string };
+        code?: string;
       };
 
       if (!signUpResponse.ok) {
-        toast.error(
-          signUpData?.error?.message ?? signUpData?.message ?? "Sign up failed.",
-        );
+        const errorMessage =
+          signUpData?.error?.message ?? signUpData?.message ?? "Sign up failed.";
+        const normalizedError = errorMessage.toLowerCase();
+
+        const isExistingEmailError =
+          normalizedError.includes("already") ||
+          normalizedError.includes("exist") ||
+          normalizedError.includes("duplicate") ||
+          signUpData.code === "USER_ALREADY_EXISTS";
+
+        if (isExistingEmailError) {
+          const sent = await sendVerificationForMethod(email, method);
+          if (sent) {
+            toast.info("This email already exists. Verification was resent.");
+          }
+          return;
+        }
+
+        toast.error(errorMessage);
         return;
       }
 
-      const verificationResponse = await fetch("/api/email-verification/send", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          method,
-        }),
-      });
-
-      const verificationData = (await verificationResponse.json().catch(() => ({}))) as {
-        message?: string;
-        error?: string;
-      };
-
-      if (!verificationResponse.ok) {
-        toast.error(verificationData.error ?? "Failed to send verification email.");
-        return;
-      }
-
-      if (method === "otp") {
-        toast.success("OTP sent to your email.");
-        router.push(`/email-verify-otp?email=${encodeURIComponent(email)}`);
-      } else {
-        toast.success("Verification link sent to your email.");
-        router.push("/auth/sign-in");
-      }
-
-      router.refresh();
+      await sendVerificationForMethod(email, method);
     } catch {
       toast.error("Something went wrong.");
     } finally {

@@ -50,9 +50,6 @@ export async function POST(request: Request) {
         email: user.email,
         callbackURL,
       },
-      headers: {
-        "x-verification-mode": "link",
-      },
     });
 
     return NextResponse.json({

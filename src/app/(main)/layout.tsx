@@ -21,6 +21,7 @@ import {
 } from "~/components/ui/breadcrumb";
 import BreadcrumbPageClient from "~/components/sidebar/breadcrumb-page-client";
 import SoundBar from "~/components/sound-bar";
+import { Analytics } from "@vercel/analytics/next"
 
 
 
@@ -56,6 +57,7 @@ export default function RootLayout({
           </SidebarProvider>
           <Toaster />
         </Providers>
+        <Analytics />
       </body>
     </html>
   );
