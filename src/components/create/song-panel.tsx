@@ -9,6 +9,13 @@ import { Switch } from "../ui/switch";
 import { Badge } from "../ui/badge";
 import { toast } from "sonner";
 import { generateSong, type GenerateRequest } from "~/actions/generation";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 const inspirationTags = [
   "80s synth-pop",
@@ -37,6 +44,25 @@ export function SongPanel() {
   const [lyrics, setLyrics] = useState("");
   const [styleInput, setStyleInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [language, setLanguage] = useState<"english" | "bengali" | "hindi">("english");
+
+  const isLanguageOption = (
+    value: string,
+  ): value is "english" | "bengali" | "hindi" =>
+    value === "english" || value === "bengali" || value === "hindi";
+
+  const getLanguageLabel = () => {
+    if (language === "english") return "English";
+    if (language === "bengali") return "Bengali";
+    return "Hindi";
+  };
+
+  const appendLanguageToText = (text: string) => {
+    const trimmedText = text.trim();
+    if (!trimmedText) return trimmedText;
+
+    return `${trimmedText} Language: ${getLanguageLabel()}`;
+  };
 
   const handleStyleInputTagClick = (tag: string) => {
     const currentTags = styleInput
@@ -83,8 +109,10 @@ export function SongPanel() {
 
     if (mode === "simple") {
       requestBody = {
-        fullDescribedSong: description,
+        fullDescribedSong: appendLanguageToText(description),
         instrumental,
+        language,
+        engine: language === "english" ? "acestep" : "heartlib",
       };
     } else {
       const prompt = styleInput;
@@ -93,12 +121,16 @@ export function SongPanel() {
           prompt,
           lyrics,
           instrumental,
+          language,
+          engine: language === "english" ? "acestep" : "heartlib",
         };
       } else {
         requestBody = {
           prompt,
-          describedLyrics: lyrics,
+          describedLyrics: appendLanguageToText(lyrics),
           instrumental,
+          language,
+          engine: language === "english" ? "acestep" : "heartlib",
         };
       }
     }
@@ -109,7 +141,7 @@ export function SongPanel() {
       setDescription("");
       setLyrics("");
       setStyleInput("");
-    } catch (error) {
+    } catch {
       toast.error("Failed to generate song");
     } finally {
       setLoading(false);
@@ -119,6 +151,25 @@ export function SongPanel() {
   return (
     <div className="bg-muted/30 flex w-full flex-col border-r lg:w-80">
       <div className="flex-1 overflow-y-auto p-4">
+        <div className="mb-6 flex flex-col gap-3">
+          <label className="text-sm font-medium">Music Engine</label>
+          <Select
+            value={language}
+            onValueChange={(value) => {
+              if (isLanguageOption(value)) setLanguage(value);
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="english">English</SelectItem>
+              <SelectItem value="bengali">Bengali</SelectItem>
+              <SelectItem value="hindi">Hindi</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         <Tabs
           value={mode}
           onValueChange={(value) => setMode(value as "simple" | "custom")}

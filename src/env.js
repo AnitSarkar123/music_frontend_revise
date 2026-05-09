@@ -29,10 +29,15 @@ export const env = createEnv({
     AWS_REGION: z.string().optional(),
     S3_BUCKET_NAME: z.string().optional(),
 
-    // Backend endpoints (expect full URLs)
+    // Backend endpoints (HeartLib - default)
     GENERATE_FROM_DESCRIPTION: z.string().url(),
     GENERATE_FROM_DESCRIBED_LYRICS: z.string().url(),
     GENERATE_WITH_LYRICS: z.string().url(),
+
+    // ACE-Step backend endpoints
+    ACESTEP_GENERATE_FROM_DESCRIPTION: z.string().url().optional(),
+    ACESTEP_GENERATE_FROM_DESCRIBED_LYRICS: z.string().url().optional(),
+    ACESTEP_GENERATE_WITH_LYRICS: z.string().url().optional(),
 
     // Optional external tokens
     POLAR_ACCESS_TOKEN: z.string().optional(),
@@ -73,9 +78,13 @@ export const env = createEnv({
     AWS_REGION: process.env.AWS_REGION,
     S3_BUCKET_NAME: process.env.S3_BUCKET_NAME,
 
-    GENERATE_FROM_DESCRIPTION: process.env.GENERATE_FROM_DESCRIPTION,
-    GENERATE_FROM_DESCRIBED_LYRICS: process.env.GENERATE_FROM_DESCRIBED_LYRICS,
-    GENERATE_WITH_LYRICS: process.env.GENERATE_WITH_LYRICS,
+    GENERATE_FROM_DESCRIPTION: process.env.GENERATE_FROM_DESCRIPTION_HERTLIB,
+    GENERATE_FROM_DESCRIBED_LYRICS: process.env.GENERATE_FROM_DESCRIBED_LYRICS_HERTLIB,
+    GENERATE_WITH_LYRICS: process.env.GENERATE_WITH_LYRICS_HERTLIB,
+
+    ACESTEP_GENERATE_FROM_DESCRIPTION: process.env.GENERATE_FROM_DESCRIPTION_ACESTEP,
+    ACESTEP_GENERATE_FROM_DESCRIBED_LYRICS: process.env.GENERATE_FROM_DESCRIBED_LYRICS_ACESTEP,
+    ACESTEP_GENERATE_WITH_LYRICS: process.env.GENERATE_WITH_LYRICS_ACESTEP,
 
     POLAR_ACCESS_TOKEN: process.env.POLAR_ACCESS_TOKEN,
     POLAR_WEBHOOK_SECRET: process.env.POLAR_WEBHOOK_SECRET,

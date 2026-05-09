@@ -46,6 +46,8 @@ export interface GenerateRequest {
   fullDescribedSong?: string;
   describedLyrics?: string;
   instrumental?: boolean;
+  language?: "english" | "bengali" | "hindi";
+  engine?: "acestep" | "heartlib";
 }
 
 export async function generateSong(generateRequest: GenerateRequest) {
@@ -358,7 +360,7 @@ export async function deleteCloudinaryAssets(
 // Function to browse/search Cloudinary for assets
 export async function browseCloudinaryAssets(
   folderPath = "music-generator",
-  limit = 30
+  _limit = 30
 ): Promise<{
   audio: Array<{id: string, public_id: string, url: string}>,
   images: Array<{id: string, public_id: string, url: string}>
@@ -530,22 +532,38 @@ async function callModalBackend(
     full_described_song: generateRequest.fullDescribedSong,
     instrumental: !!generateRequest.instrumental,
     guidance_scale: guidanceScale,
-    audio_duration: 120,
+    audio_duration: 180,
     seed: -1,
     infer_step: 60,
   };
 
-  // Choose endpoint
-  let endpoint = env.GENERATE_WITH_LYRICS;
-  if (generateRequest.fullDescribedSong) {
-    endpoint = env.GENERATE_FROM_DESCRIPTION;
-  } else if (generateRequest.describedLyrics) {
-    endpoint = env.GENERATE_FROM_DESCRIBED_LYRICS;
+  // Determine engine and endpoint
+  const engine = generateRequest.engine ?? "heartlib";
+  
+  let endpoint = "";
+  if (engine === "acestep") {
+    // For ACE-Step, use the appropriate endpoint based on the input type
+    if (generateRequest.fullDescribedSong) {
+      endpoint = env.ACESTEP_GENERATE_FROM_DESCRIPTION ?? "";
+    } else if (generateRequest.describedLyrics) {
+      endpoint = env.ACESTEP_GENERATE_FROM_DESCRIBED_LYRICS ?? "";
+    } else {
+      endpoint = env.ACESTEP_GENERATE_WITH_LYRICS ?? "";
+    }
+  } else {
+    // For HeartLib (default), use existing endpoints
+    if (generateRequest.fullDescribedSong) {
+      endpoint = env.GENERATE_FROM_DESCRIPTION;
+    } else if (generateRequest.describedLyrics) {
+      endpoint = env.GENERATE_FROM_DESCRIBED_LYRICS;
+    } else {
+      endpoint = env.GENERATE_WITH_LYRICS;
+    }
   }
 
-  if (!endpoint) throw new Error("Modal endpoint URL is not set in env.");
+  if (!endpoint) throw new Error(`Modal endpoint URL is not set in env for engine: ${engine}`);
 
-  console.log(`Calling Modal endpoint: ${endpoint}`);
+  console.log(`Calling Modal endpoint (${engine}): ${endpoint}`);
   console.log("With payload:", JSON.stringify(payload, null, 2));
 
   const headersInit: Record<string, string> = { "Content-Type": "application/json" };
@@ -557,7 +575,7 @@ async function callModalBackend(
 
   // Use AbortController to set a timeout
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
+  const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minute timeout
 
   try {
     const res = await fetch(endpoint, {
@@ -585,7 +603,7 @@ async function callModalBackend(
     // Narrow the unknown 'error' to a safe shape before accessing properties
     const err = error as { name?: string };
     if (err.name === 'AbortError') {
-      throw new Error('Request to Modal backend timed out after 2 minutes');
+      throw new Error('Request to Modal backend timed out after 5 minutes');
     }
     
     throw error;
